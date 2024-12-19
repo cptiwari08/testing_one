@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    stages {
+        stage('Call hybris-tests') {
+            when { changeset "core-customize/**" }
+            steps {
+                build job: "hybris-tests", parameters: [
+                    [$class: 'BooleanParameterValue', name: 'Initialize hybris', value: false],
+                    [$class: 'BooleanParameterValue', name: 'Run unit-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Run api-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Run cucumber-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Save Reports_Dir', value: false],
+                    [$class: 'StringParameterValue', name: 'Branch', value: "${BRANCH_NAME}"]
+                ]
+            }
+        }
+    }
+}

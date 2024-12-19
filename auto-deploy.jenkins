@@ -1,0 +1,27 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    triggers {
+        cron('0 4 * * 1-5')
+    }
+
+    stages {
+        stage('Build develop') {
+            steps {
+                build job: 'cloud-build', parameters: [
+                    [$class: 'StringParameterValue', name: 'Environment', value: 'd1'],
+                    [$class: 'StringParameterValue', name: 'DatabaseUpdate', value: 'UPDATE'],
+                    [$class: 'StringParameterValue', name: 'Strategy', value: 'RECREATE']
+                ]
+            }
+        }
+    }
+
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}

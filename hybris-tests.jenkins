@@ -1,0 +1,262 @@
+library 'shellib'
+
+def PREFIX = shellib.getPrefix()
+def skip_job = false
+def save_reports = false
+
+
+pipeline {
+    agent {
+        label 'slave'
+    }
+
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '14'))
+    }
+    
+    environment {
+        CHECK_JOB = 'service/job/multi-hybris-init'
+        REPORTS_DIR = "${JOB_BASE_NAME}-${BUILD_NUMBER}-reports"
+        XML_FILE = "${REPORTS_DIR}/result.xml"
+    }
+
+    parameters {
+        booleanParam(name: 'Initialize hybris', defaultValue: true)
+        booleanParam(name: 'Run unit-tests', defaultValue: true)
+        booleanParam(name: 'Run api-tests', defaultValue: true)
+        booleanParam(name: 'Run cucumber-tests', defaultValue: true)
+        booleanParam(name: 'Save Reports_Dir', defaultValue: false)
+        gitParameter name: 'Branch', type: 'PT_BRANCH', branchFilter: 'origin/(.*)', defaultValue: 'develop', selectedValue: 'DEFAULT', sortMode: 'ASCENDING_SMART', useRepository: '.*atotech-e-commerce.git'
+    }
+
+    stages {
+        stage('Clone source') {
+            steps {
+                load "cicd/envars.conf"
+                git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: "${params.Branch}", credentialsId: 'atotech-gitlab'
+                sh "mkdir ${WORKSPACE}/${REPORTS_DIR}"
+            }
+        }
+
+        stage ('Check commit') {
+            steps {
+                script {
+                    last_commit = sh (script: "git log -1 --oneline --decorate", returnStdout: true)
+                    if (last_commit.contains("${params.Branch}_${TAG_NAME}")) {
+                        print 'Nothing to do, exiting...'
+                        skip_job = true
+                    }
+                }
+            }
+        }
+
+        stage('Create mysql instance') {
+            when { expression { skip_job == false } }
+            steps {
+                script { 
+                    if (shellib.getJobStatus("${JENKINS_HOST}", "${CHECK_JOB}") != 'SUCCESS') { shellib.mysql(true, "${MYSQL_NAME}") }
+                    else { shellib.mysql(params.'Initialize hybris', "${MYSQL_NAME}") }
+                }
+            }
+        }
+        
+        stage ('Create hybris container') {
+            when { expression { skip_job == false } }
+            agent {
+                docker {
+                    label "${DOCKER_NODE}"
+                    image "${REGISTRY_HOST}:5000/core-hybris"
+                    args "--name ${JOB_BASE_NAME}-${BUILD_NUMBER} -v ${WORKSPACE}/${REPORTS_DIR}:${PREFIX}/hybris/test-reports"
+                    reuseNode true
+                }
+            }
+
+            stages {
+                stage ('Hybris build'){
+                    steps {
+                        script { shellib.build() }
+                    }
+                }
+
+                stage ('Data & Tests') { parallel {
+                    stage('Data') {
+                        when { anyOf {
+                            expression { params.'Run api-tests' == true }
+                            expression { params.'Run cucumber-tests' == true }
+                            expression { params.'Initialize hybris' == true }
+                        }}
+                        stages {
+                            stage('Hybris initialize') {
+                                when { anyOf {
+                                    expression { params.'Initialize hybris' == true }
+                                    expression { shellib.getJobStatus("${JENKINS_HOST}", "${CHECK_JOB}") != 'SUCCESS' }
+                                }}
+                                steps {
+                                    script { shellib.data('initialize') }
+                                }
+                            }
+
+                            stage('Hybris update') {
+                                when { allOf {
+                                    expression { params.'Initialize hybris' == false }
+                                    expression { shellib.getJobStatus("${JENKINS_HOST}", "${CHECK_JOB}") == 'SUCCESS' }
+                                }}
+                                steps {
+                                    script { shellib.data('updatesystem') }
+                                }
+                            }
+                        }
+                    }
+
+                    stage('Tests') {
+                        stages {
+                            stage('Run unit-tests') {
+                                when { expression { params.'Run unit-tests' == true } }
+                                steps {
+                                    sh """
+                                        cd ${PREFIX}/bootstrap
+                                        . ./setantenv.sh
+                                        ant runjacocounittests -Dtestclasses.reportdir=${PREFIX}/hybris/test-reports/unit
+                                    """
+                                    junit "**/${REPORTS_DIR}/unit/*.xml"
+                                }
+                            }
+
+                            stage('SonarQube gate') {
+                                when { expression { params.'Run unit-tests' == true } }
+                                steps {
+                                    script { shellib.sonar("${JENKINS_HOST}", "${SONAR_EXTENSIONS}", params.'Branch') }
+                                        sh """
+                                            cd ${PREFIX}/hybris/bin/platform
+                                            . ./setantenv.sh
+                                            ant sonarcheck
+                                        """
+                                }
+                            }
+                        }
+                    }
+                }}
+
+                stage('Hybris start') {
+                    when { anyOf {
+                        expression { params.'Run api-tests' == true }
+                        expression { params.'Run cucumber-tests' == true }
+                    }}
+                    steps {
+                        sh """
+                            cd ${PREFIX}/hybris/bin/platform
+                            JENKINS_NODE_COOKIE=dontKillMe ./hybrisserver.sh start
+                        """
+                        script {
+                            def hac_link = sh(script: '''
+                                echo -n "https://`hostname -I|tr -d ' '`:9002/hac"
+                                ''', returnStdout: true)
+                            waitUntil {
+                                httpRequest ignoreSslErrors: true, responseHandle: 'NONE', timeout: 1200, url: hac_link, validResponseCodes: '200'
+                                return true
+                            }
+                        }
+                    }
+                }
+                
+                stage('Run api-tests') {
+                    when { expression { params.'Run api-tests' == true } }
+                    steps {
+                        sh """
+                            cd ${PREFIX}/bootstrap
+                            . ./setantenv.sh
+                            ant runapitests -Dtestclasses.reportdir=${PREFIX}/hybris/test-reports/api
+                        """
+                        junit "**/${REPORTS_DIR}/api/*.xml"
+                    }
+                }
+
+                stage('Run cucumber-tests') {
+                    when { expression { params.'Run cucumber-tests' == true } }
+                    // timeout(30) {}
+                    steps {
+                        sh """
+                            cd ${PREFIX}/bootstrap
+                            . ./setantenv.sh
+                            ant runbackendcucumbertests -Dreport.path=${PREFIX}/hybris/test-reports/cucumbertests
+                        """
+                        script {
+                            def result = sh(script: """
+                                grep failures ${REPORTS_DIR}/cucumbertests/report.txt | cut -d' ' -f2
+                                """, returnStdout: true).trim()
+                            if ("${result}" == '0') { fail_num=0; output="system-out" }
+                            else { fail_num=1; output="failure"; save_reports = true }
+sh """
+cat << EOT > ${XML_FILE}
+<?xml version="1.0" ?>
+<testsuite name="HTTP_Check" failures="${fail_num}" tests="1">
+<testcase name="Cucumberserver">
+<${output}>
+`cat ${REPORTS_DIR}/cucumbertests/report.txt`
+</${output}>
+</testcase>
+</testsuite>
+"""
+                        }
+                        junit "${XML_FILE}"
+                        sh "cp -a ${PREFIX}/hybris/log/tomcat/ ${REPORTS_DIR}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                if ((params.'Save Reports_Dir' == true) || (save_reports == true)) {
+                    sh " zip -r test-reports.zip ${REPORTS_DIR}"
+                    archiveArtifacts artifacts: 'test-reports.zip'
+                }
+                // send notification to teams
+                if (skip_job == false) {
+                    sh "[ -d ${REPORTS_DIR} ] && find ${REPORTS_DIR} -name '*\\.xml' -exec touch {} \\;"
+                    try {
+                        summary = junit testResults: "${REPORTS_DIR}/**/*.xml"
+                        test_summary = "Passed: ${summary.passCount}, Failed: ${summary.failCount}, Skipped: ${summary.skipCount}"
+                    } catch (Exc) { test_summary = 'N/A' }
+                    facts = """
+                        {"name": "Branch", "value": "${params.Branch}"},
+                        {"name": "Test Summary", "value": "${test_summary}"},
+                        {"name": "Last Commit",	"value": "${sh(script:"git log -1 --pretty=format:'%s'|sed 's/\"//g'",returnStdout:true)}"},
+                        {"name": "Author Name",	"value": "${sh(script:"git log -1 --pretty=format:'%an'",returnStdout:true)}"}
+                    """
+                    shellib.postMessage("${JOB_BASE_NAME}", "${BUILD_NUMBER}", "${RUN_DISPLAY_URL}", currentBuild.result, "${facts}")
+                }
+                // MR comment (Is it necessary to comment MR if there is no label 'Backend'?)
+                if ((params.'Run unit-tests' == true) && (params.'Run api-tests' == true) && (params.'Run cucumber-tests' == true)) {
+                    build job: "service/update-sqlite", parameters: [
+                        [$class: 'StringParameterValue', name: 'branch', value: params.'Branch'],
+                        [$class: 'StringParameterValue', name: 'project_id', value: "${PROJECT_ID}"],
+                        [$class: 'StringParameterValue', name: 'result', value: "${currentBuild.result}"]
+                    ]
+                }
+                // delete docker container
+                sh "if [ \$(docker ps --format {{.Names}}|grep ${MYSQL_NAME}) ]; then docker rm --force ${MYSQL_NAME}; fi"
+            }
+        }
+        success {
+            script {
+                if (("${params.Branch}" == "${DEV_BRANCH}") || ("${params.Branch}".contains("${RELEASE_BRANCH}"))) {
+                    if ((params.'Run unit-tests'==true) && (params.'Run api-tests'==true) && (params.'Run cucumber-tests'==true) && (skip_job==false)) {
+                        withCredentials([usernamePassword(credentialsId: 'atotech-gitlab-2', usernameVariable: 'username', passwordVariable: 'password')]) {
+                            sh """
+                                git tag -f ${params.Branch}_${TAG_NAME} ${last_commit.split(' ')[0]}
+                                git config --local credential.helper "!f() { echo username=\\$username; echo password=\\$password; }; f"
+                                git push -f --tags
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        cleanup {
+            deleteDir()
+        }
+    }   
+}

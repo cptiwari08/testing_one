@@ -1,0 +1,15 @@
+FROM sapmachine:17
+ARG JAVA_SECURITY_FILE=/usr/lib/jvm/sapmachine-17/conf/security/java.security \
+    PREFIX=/opt/core-customize \
+    UID=1010
+COPY --chown=${UID}:${UID} hybris/ ${PREFIX}/hybris/
+RUN useradd -u ${UID} -m hybris \
+    && mkdir ${PREFIX}/hybris/test-reports \
+    && chown ${UID}:${UID} ${PREFIX} ${PREFIX}/hybris/test-reports \
+    && mv ${PREFIX}/hybris/.m2 /home/hybris \
+    && apt-get update && apt-get install -y libedit2 lsof mysql-client && rm -rf /var/lib/apt/lists/* \
+    && sed -ie "s/jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1/jdk.tls.disabledAlgorithms=SSLv3/" ${JAVA_SECURITY_FILE}
+VOLUME ${PREFIX}/hybris/test-reports
+    #EXPOSE 9001-9002
+USER hybris
+CMD ["/bin/sh"]

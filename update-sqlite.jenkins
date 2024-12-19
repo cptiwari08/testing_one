@@ -1,0 +1,23 @@
+library 'shellib'
+
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    stages {
+        stage('Update local db') {
+            steps {
+                script {
+                    shellib.updateMR(params.'branch', params.'project_id', params.'result')
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}

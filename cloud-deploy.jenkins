@@ -1,0 +1,98 @@
+library 'saplib'
+
+properties([
+    parameters([
+        [$class: 'ChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '', filterLength: 1, filterable: false, name: 'Build name', 
+            script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: ''], 
+            script: [classpath: [], sandbox: false, script: ''' 
+                import jenkins.model.*
+                import groovy.json.JsonSlurper 
+
+                def token
+                def builds = []
+                def builds_url = 'https://portalrotapi.hana.ondemand.com/v2/subscriptions/e7b568920515449797ce03df007f847c/builds?$orderby=buildStartTimestamp%20desc&$top=10'
+
+                def jenkinsCredentials = com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(com.cloudbees.plugins.credentials.Credentials.class, Jenkins.instance, null, null)
+                for (creds in jenkinsCredentials) { if(creds.id == "ccv2-token") { token = creds.secret; break } }
+                def response = ["curl", "-s", "-H", "Authorization: Bearer ${token}", "--url", "${builds_url}"].execute().text
+                def responseJson = new JsonSlurper().parseText(response)
+                responseJson.value.each { if (it.status == 'SUCCESS') { builds.add(it.name+" : "+it.code) } }
+
+                return builds
+            ''']]]
+])])
+
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    options {
+        disableConcurrentBuilds()
+        office365ConnectorWebhooks([[ url: "${DeployWebHook}", startNotification: true ]])
+    }
+
+    parameters {
+        choice(name: 'Environment', choices: ['none', 'd1'], description: 'Desired environment to deploy')
+        choice(name: 'DatabaseUpdate', choices: ['NONE', 'UPDATE', 'INITIALIZE'], description: 'Data Migration Mode')
+        choice(name: 'Strategy', choices: ['RECREATE', 'ROLLING_UPDATE'], description: 'Deployment Mode')
+    }
+
+    stages {
+        stage('Load Envars') {
+            steps {
+                load "cicd/envars.conf"
+            }
+        }
+
+        stage('Deploy') {
+            when { expression { params.'Environment' != 'none' } }
+            steps {
+                script {
+                    def build_code = params.'Build name'.split(" : ")[1]
+                    deploy_code = saplib.createDeployment(build_code, params.'Environment', params.'DatabaseUpdate', params.'Strategy')
+                        print 'deployment code is ' + deploy_code
+                    timeout(60) {
+                        waitUntil {
+                        def status = saplib.getJobStatus('deployments', deploy_code)
+                            print 'status = ' + status
+                        if (status == 'DEPLOYED') { return true}
+                        else { sleep 120; return false }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Git changes') {
+            when { expression { "${params.'Build name'}".contains("${DEV_BRANCH}") } }
+            steps {
+                load "cicd/envars.conf"
+                git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: "${DEV_BRANCH}", credentialsId: 'atotech-gitlab'
+                script {
+                    commits = saplib.getCommits()
+                    if (commits[0] != commits[1]) {
+                        changes = sh(script: "git --no-pager log develop --pretty=format:'%h: %s' | sed -n '/${commits[0]}/,/${commits[1]}/p' | sed 's/^/*/' | sed 's/./&*/10' | awk -v ORS='\\n\\n' '1'", returnStdout: true)
+                        message = "**Deployed**: *${commits[2]}*\n\n**Changes between** *${commits[2]}* **and** *${commits[3]}:*\n\n ${changes}"
+                        office365ConnectorSend color: "#00ff00", message: "${message}", webhookUrl: "${DeployWebHook}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def build_name = params.'Build name'.split(" : ")[0]
+                if (currentBuild.result == 'SUCCESS') {
+                    if (!"${build_name}".contains("${DEV_BRANCH}")) {
+                        office365ConnectorSend color: "#00ff00", message: "Cloud deploy: ${build_name}", status:"${currentBuild.result}", webhookUrl:"${DeployWebHook}"
+                    }
+                }
+                else { office365ConnectorSend color: "#ff0000", message: "Cloud build: ${build_name}", status:"${currentBuild.result}", webhookUrl:"${DeployWebHook}" }
+            }
+            deleteDir()
+        }
+    } 
+ }

@@ -1,0 +1,37 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    options {
+        office365ConnectorWebhooks([[
+            url: "${TeamsWebHook}",
+            notifySuccess: true,
+            notifyFailure: true,
+        ]])
+    }
+
+    triggers {
+        cron('0 2 * * 1-5')
+    }
+
+    stages {
+        stage ('Parallel stages') { parallel {
+            stage('slave0 init') {
+                steps {
+                    build job: "hybris-init", parameters: [[$class: 'StringParameterValue', name: 'agent-name', value: 'slave0']]
+                }
+            }
+            stage('slave1 init') {
+                steps {
+                    build job: "hybris-init", parameters: [[$class: 'StringParameterValue', name: 'agent-name', value: 'slave1']]
+                }
+            }
+            stage('slave2 init') {
+                steps {
+                    build job: "hybris-init", parameters: [[$class: 'StringParameterValue', name: 'agent-name', value: 'slave2']]
+                }
+            }
+        }}
+    }
+}

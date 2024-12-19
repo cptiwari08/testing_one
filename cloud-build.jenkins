@@ -1,0 +1,115 @@
+library 'saplib'
+def skip_job = false
+
+
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        gitParameter name: 'Branch', type: 'PT_BRANCH', branchFilter: 'origin/(develop|release.*)', defaultValue: 'develop', selectedValue: 'DEFAULT', sortMode: 'ASCENDING_SMART', listSize: '3', useRepository: '.*atotech-e-commerce.git'
+        choice(name: 'Environment', choices: ['none', 'd1'], description: 'Choose environment to deploy')
+        choice(name: 'DatabaseUpdate', choices: ['NONE', 'UPDATE', 'INITIALIZE'], description: 'Data Migration Mode')
+        choice(name: 'Strategy', choices: ['RECREATE', 'ROLLING_UPDATE'], description: 'Deployment Mode')
+    }
+
+    stages {
+        stage('Run hybris-tests') {
+            steps {
+                build job: "hybris-tests", parameters: [
+                    [$class: 'BooleanParameterValue', name: 'Initialize hybris', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Run unit-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Run api-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Run cucumber-tests', value: true],
+                    [$class: 'BooleanParameterValue', name: 'Save Reports_Dir', value: false],
+                    [$class: 'StringParameterValue', name: 'Branch', value: params.'Branch']
+                ]
+            }
+        }
+
+        stage ('Check commits') {
+            steps {
+                script {
+                    load "cicd/envars.conf"
+                    git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: params.'Branch', credentialsId: 'atotech-gitlab'
+                    
+                    build_commit = saplib.getLastBuild(params.'Branch', 'hash')
+                    last_commit = (sh(script:"git log -1 --pretty=format:'%h'|cut -c1-7",returnStdout:true)).trim()
+                    print "Commit in cloud: ${build_commit}, Commit in SCM: ${last_commit}"
+                    if (build_commit == last_commit) {
+                        print 'Nothing to build...'
+                        skip_job = true
+                    }
+                }
+            }
+        }
+
+        stage('Run yarn build') {
+            when { expression { skip_job == false } }
+            steps {
+                script {
+                    // node:12.22.9-alpine3.15 -> npm i -g @angular/cli@10.2.4
+                    docker.image('alpine-node').inside {
+                        sh '''
+                            yarn_log='yarn_build.log'
+                            cd js-storefront/atotech-store/
+                            npm install
+                            yarn build 2>&1 | tee ${yarn_log}
+                            if (grep -i 'error' ${yarn_log}); then exit 10; fi
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            when { expression { skip_job == false } }
+            steps {
+                script {
+                    build_code = saplib.createBuild(params.'Branch', params.'Branch'+'_'+"${TAG_NAME}")
+                        print 'build code is ' + build_code
+                    timeout(60) {
+                        waitUntil {
+                            status = saplib.getJobStatus('builds', build_code)
+                                print 'status = ' + status
+                            if (status == 'FAIL') { currentBuild.result = 'FAILURE'; return true }
+                            if (status == 'SUCCESS') { return true}
+                            else { sleep 90; return false }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                if (skip_job == false) {
+                    build_name = saplib.getBuildName(build_code)
+                    if ( status == 'SUCCESS' ) { office365ConnectorSend color: "#00ff00", message: "Cloud build: ${build_name}", status:"${status}", webhookUrl:"${DeployWebHook}" }
+                    else { office365ConnectorSend color: "#ff0000", message: "Cloud build: ${build_name}", status:"${status}", webhookUrl:"${DeployWebHook}" }
+                }
+            }
+            deleteDir()
+        }
+        success {
+            script {
+                if ((skip_job == false) && (params.'Environment' != 'none')) {
+                    build_name = build_name + " : " + build_code
+                    build job: 'cloud-deploy', parameters: [
+                        [$class: 'StringParameterValue', name: 'Build name', value: "${build_name}"],
+                        [$class: 'StringParameterValue', name: 'Environment', value: params.'Environment'],
+                        [$class: 'StringParameterValue', name: 'DatabaseUpdate', value: params.'DatabaseUpdate'],
+                        [$class: 'StringParameterValue', name: 'Strategy', value: params.'Strategy']
+                    ]
+                }
+            }
+        }
+    }
+ }

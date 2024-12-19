@@ -1,0 +1,38 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '7'))
+    }
+
+    triggers {
+        cron('0 1 * * *')
+    }
+
+    environment {
+        today = new Date().format("yyyyMMdd")
+        backup_file = "jenkins-backup_${today}.tar.gz"
+    }
+
+    stages {
+        stage('Run backup script') {
+            steps {
+                sh "bash cicd/jenkins-backup.sh ${JENKINS_HOME} ${backup_file}"
+            }
+        }
+
+        stage('Copy archive file') {
+            steps {
+                sh "aws s3 cp ${backup_file} s3://backup-bucket-more-spaniel/jenkins-backup/"
+            }
+        }
+    }
+
+    post {
+        always {
+            deleteDir()
+        }
+    }   
+}

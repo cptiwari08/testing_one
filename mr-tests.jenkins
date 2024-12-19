@@ -1,0 +1,57 @@
+// Table for last_commits in MR: CREATE TABLE MR(mr_iid int primary key,last_commit string, status string);
+library 'shellib'
+import groovy.json.JsonSlurperClassic
+
+def jobs = [:]
+pipeline {
+    agent { label 'master' }
+
+    options { 
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(daysToKeepStr: '5'))
+    }
+
+    // Time set in UTC
+    triggers { cron('H/30 4-17 * * *') }
+
+    stages {
+        stage('Check MR') {
+            steps {
+                script {
+                    load "cicd/envars.conf"
+                    mr_opened = "https://gitlab.com/api/v4/projects/${PROJECT_ID}/merge_requests?state=opened"
+                    withCredentials([string(credentialsId: 'atotech-gitlab-api', variable: 'api_token')]) {
+                        mr = httpRequest httpMode: 'GET', url: "${mr_opened}", customHeaders: [[name: 'Authorization', value: "Bearer ${api_token}"]]
+                        mrJson = new JsonSlurperClassic().parseText(mr.getContent())
+                        mrJson.each {
+                            if (it['labels'].contains('Backend')) {
+                                db_commit = shellib.getCommit("${it['iid']}")
+                                if (it['sha'] != db_commit) {
+                                    jobs["${it['source_branch']}"] = {
+                                        stage(it['title']) {
+                                            build job: "hybris-tests", propagate: false, parameters: [
+                                                [$class: 'BooleanParameterValue', name: 'Initialize hybris', value: true],
+                                                [$class: 'BooleanParameterValue', name: 'Run unit-tests', value: true],
+                                                [$class: 'BooleanParameterValue', name: 'Run api-tests', value: true],
+                                                [$class: 'BooleanParameterValue', name: 'Run cucumber-tests', value: true],
+                                                [$class: 'BooleanParameterValue', name: 'Save Reports_Dir', value: false],
+                                                [$class: 'StringParameterValue', name: 'Branch', value: it['source_branch']]
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        parallel jobs
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            deleteDir()
+        }
+    }   
+}

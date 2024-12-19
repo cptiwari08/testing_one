@@ -1,0 +1,56 @@
+library 'shellib'
+
+pipeline {
+    agent { label params['agent-name'] }
+
+    parameters {
+        agentParameter name:'agent-name'
+    }
+
+    stages {
+        stage('Clone source') {
+            steps {
+                load "cicd/envars.conf"
+                git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: "${DEV_BRANCH}", credentialsId: 'atotech-gitlab'
+            }
+        }
+
+        stage('Create mysql instance') {
+            steps {
+                script { shellib.mysql(true, "${MYSQL_NAME}") }
+            }
+        }   
+
+        stage ('Create hybris container') {
+            agent {
+                docker {
+                    label "${DOCKER_NODE}"
+                    image "${REGISTRY_HOST}:5000/core-hybris"
+                    args "--name ${JOB_BASE_NAME}-${BUILD_NUMBER}"
+                    reuseNode true
+                }
+            }
+
+            stages {
+                stage ('Hybris build'){
+                    steps {
+                        script { shellib.build() }
+                    }
+                }
+
+                stage('Hybris initialize') {
+                    steps {
+                        script { shellib.data('initialize') }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script { sh "docker rm --force ${MYSQL_NAME}" }
+            deleteDir()
+        }
+    }   
+}

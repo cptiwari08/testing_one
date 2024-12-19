@@ -1,0 +1,66 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+    stages {
+        stage('Unzip sources') {
+            steps {
+                script {
+                    def unzipPath = "/bitnami/jenkins/home/zip-sources"
+
+                    sh """
+                        # Ensure target directories exist with appropriate permissions
+                        sudo mkdir -p /bitnami/jenkins/home/workspace/cp01/hybris/bin/modules-cep
+                        sudo chmod -R 777 /bitnami/jenkins/home/workspace/cp01/hybris
+
+                        # Unzip the files using 7z with -aoa to overwrite without prompt
+                        if [ ! -d "hybris/bin/modules-cep" ]; then
+                            7z x "${unzipPath}/CXCOMIEP221100U_24-70007891.ZIP" -ohybris/bin/modules
+                            mv hybris/bin/modules hybris/bin/modules-cep
+                        fi
+
+                        if [ ! -d "hybris/bin/modules-cep/cloudhotfolders-2211-20240309-020334" ]; then
+                            7z x "${unzipPath}/cloudhotfolders-2211-20240309-020334.zip" -ohybris/bin/modules-cep
+                            mv hybris/bin/modules-cep/cloudhotfolders-2211-20240309-020334 hybris/bin/modules-cep/cloudhotfolders-2211-20240309-020334
+                        fi
+
+                        if [ ! -d "hybris/bin/platform" ]; then
+                            7z x "${unzipPath}/CXCOMCL221100U_24-70007431.ZIP" -ohybris/bin/platform
+                        fi
+
+                        # Modify specific file with sed
+                        sudo sed -i 's/SOLR_STOP_WAIT=180/SOLR_STOP_WAIT=30/' /bitnami/jenkins/home/workspace/cp01/hybris/bin/modules/hybris/bin/modules/search-and-navigation/solrserver/resources/solr/8.11/server/bin/solr
+                        
+                          # Conditional file copy if it doesn't exist
+                        if [ ! -f "hybris/bin/modules/hybris/bin/platform/lib/dbdriver/mysql-connector-java-5.1.49.jar" ]; then
+                            sudo cp "${unzipPath}/mysql-connector-java-5.1.49.jar" hybris/bin/modules/hybris/bin/platform/lib/dbdriver/
+                        fi
+
+                        # Extract tar file
+                        tar --overwrite -xzf ${JENKINS_HOME}/zip-sources/m2.tgz -C hybris 
+                        # Use rsync to overwrite the .m2 directory 
+                        sudo rsync -av --delete hybris/.m2/ hybris/.m2/
+                    
+                    """
+                }
+            }
+        }
+
+        stage('Build hybris image') {
+            steps {
+                load "cicd/envars.conf"
+                sh '''
+                docker build --no-cache -t "${REGISTRY_HOST}:5000/core-hybris" -f cicd/Dockerfile.core .
+                docker push ${REGISTRY_HOST}:5000/core-hybris
+                docker rmi ${REGISTRY_HOST}:5000/core-hybris
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            deleteDir()
+        }
+    }
+}
