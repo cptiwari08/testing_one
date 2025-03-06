@@ -1,0 +1,93 @@
+@import "variables";
+
+@mixin for-phone-only {
+  @media (max-width: $resolution-mobile) {
+    @content;
+  }
+}
+
+@mixin for-phone-in-landscape {
+  @media (max-width: $resolution-mobile-landscape) and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin for-phone-in-any-mode {
+  @media (max-width: $resolution-mobile) {
+    @content;
+  }
+
+  @media (max-width: $resolution-mobile-landscape) and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin for-small-phone-only {
+  @media (max-width: $resolution-mobile__small) {
+    @content;
+  }
+}
+
+@mixin for-tablet {
+  @media (max-width: $resolution-tablet) {
+    @content;
+  }
+}
+
+@mixin for-small-tablet {
+  @media (max-width: $resolution-tablet__small) {
+    @content;
+  }
+}
+
+@mixin only-for-small-tablet {
+  @media (max-width: 767px) {
+    @content;
+  }
+}
+
+@mixin for-laptop {
+  @media (max-width: $resolution-laptop) {
+    @content;
+  }
+}
+
+@mixin for-resolution($width) {
+  @media (max-width: $width) {
+    @content;
+  }
+}
+
+@mixin for-desktop-and-tablet {
+  @media (min-width: $resolution-tablet__small) {
+    @content;
+  }
+}
+
+@mixin for-destop-only {
+  @media (min-width: $resolution-tablet) {
+    @content;
+  }
+}
+
+@mixin fontello-icon($content: null, $fontSize: 32px) {
+  content: $content;
+  display: block;
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  font-size: $fontSize;
+  line-height: 0;
+}
+
+@mixin without-hamburger {
+  @media (min-width: 992px) {
+    @content;
+  }
+}
+
+@mixin with-hamburger {
+  @media (max-width: 991px) {
+    @content;
+  }
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<extensioninfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="extensioninfo.xsd">
+        	
+    
+    <extension abstractclassprefix="Generated" classprefix="AtotechCore" managername="AtotechCoreManager" managersuperclass="de.hybris.platform.jalo.extension.Extension" name="atotechcore">
+
+        <requires-extension name="acceleratorcms"/>
+        <requires-extension name="b2bacceleratorservices" />
+
+        <coremodule generated="true" manager="com.atotech.core.jalo.AtotechCoreManager" packageroot="com.atotech.core"/>
+                		
+
+    </extension>
+        
+
+</extensioninfo>

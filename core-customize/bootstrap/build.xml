@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<project name="atotech-build" basedir="./../">
+
+    <property name="platformhome" location="${basedir}/hybris/bin/platform" />
+
+    <import file="${platformhome}/resources/ant/antmacros.xml"/>
+    <import file="${platformhome}/build.xml" />
+
+    <property name="bootstraphome" location="${basedir}/bootstrap" />
+    <property name="customextensionsfolder" location="${basedir}/hybris/bin/custom" />
+    <property name="testsresultfolder" location="${HYBRIS_LOG_DIR}/tests" />
+
+    <target name="runbackendcucumbertests">
+        <ant antfile="${bootstraphome}/utils/cucumbertests.xml" target="runbackendcucumbertests">
+            <property name="report.path" value="${testsresultfolder}/cucumbertests" />
+            <property name="features.path" value="${customextensionsfolder}/atotech/atotechbackendfeatures/backendfeatures" />
+        </ant>
+    </target>
+
+    <target name="rununittests">
+        <annotationtests annotations="unittests" extensions="atotechcore,atotechfacades,atotechfulfilmentprocess,atotechocc,atotechbackoffice"
+                         suppress.junit.tenant="true" junit.results.directory="${testsresultfolder}/unittests" />
+    </target>
+
+    <target name="runapitests">
+        <annotationtests annotations="unittests" extensions="atotechapitests"
+                         packages="com.atotech.apitests.OccTests"
+                         suppress.junit.tenant="true" junit.results.directory="${testsresultfolder}/apitests" />
+    </target>
+
+
+</project>

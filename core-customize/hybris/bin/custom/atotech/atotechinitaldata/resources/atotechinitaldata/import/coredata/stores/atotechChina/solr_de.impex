@@ -1,0 +1,24 @@
+$lang=de
+
+$indexedType=atotechChinaProductType
+
+UPDATE SolrIndexedProperty;solrIndexedType(identifier)[unique=true,default=$indexedType];name[unique=true];displayName[lang=$lang]
+ ;;allPromotions;Werbeaktion;
+ ;;brand;Marke;
+ ;;category;Kategorie;
+ ;;code;Code;
+ ;;description;Beschreibung;
+ ;;manufacturerName;Name des Herstellers;
+ ;;name;Name;
+ ;;price;Preis;
+ ;;summary;Zusammenfassung;
+
+
+# Define the available sorts
+UPDATE SolrSort;indexedType(identifier)[unique=true,default=$indexedType];code[unique=true];name[lang=$lang]
+ ;;name-asc;Name (aufsteigend);
+ ;;name-desc;Name (absteigend);
+ ;;price-asc;Preis (niedrigster oben);
+ ;;price-desc;Preis (hˆchster oben);
+ ;;relevance;Relevanz;
+ ;;topRated;Beliebteste;

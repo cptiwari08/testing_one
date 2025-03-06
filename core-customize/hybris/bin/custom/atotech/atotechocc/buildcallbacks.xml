@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+ Copyright (c) 2020 SAP SE or an SAP affiliate company. All rights reserved.
+--><!--
+ All hybris buildcallbacks.xml macrodefinitions:
+
+ Build/Documentation
+
+	 before/after ant macro "clean"
+		 <macrodef name="atotechocc_before_clean"/>
+		 <macrodef name="atotechocc_after_clean"/>
+
+	 before/after ant macro "build"
+		 <macrodef name="atotechocc_before_build"/>
+		 <macrodef name="atotechocc_after_build"/>
+
+	 before/after ant macro "compile_core" - the core module of the extension
+		 <macrodef name="atotechocc_before_compile_core">
+		 <macrodef name="atotechocc_after_compile_core">
+
+	 before/after ant macro "compile_web" - the web module of the extension
+		 <macrodef name="atotechocc_before_compile_web" />
+		 <macrodef name="atotechocc_after_compile_web" />
+
+ Preparing extension
+
+	 will be called in the beginning of the ant call and only once (also when using multiple
+	 ant targets e.g. ant build yunittest)
+		 <macrodef name="atotechocc_only_once_prepare"/>
+
+ Creating ear module/production
+
+	 before/after ant macro "ear"
+		 <macrodef name="atotechocc_before_ear"/>
+		 <macrodef name="atotechocc_after_ear"/>
+
+	 before/after ant macro "production" - for hybris server only
+		 <macrodef name="atotechocc_before_production" />
+		 <macrodef name="atotechocc_after_production" />
+
+ JUnit Test
+
+	 before/after ant macro "yunitinit"
+		 <macrodef name="atotechocc_before_yunitinit" />
+		 <macrodef name="atotechocc_after_yunitinit" />
+
+	 before/after ant macro "yunit"
+		 <macrodef name="atotechocc_before_yunit" />
+		 <macrodef name="atotechocc_after_yunit" />
+
+ Distribution package
+
+ 	 before/after ant macro "dist" - internal target; only for use when platform is available in source code
+		 <macrodef name="atotechocc_after_dist"/>
+		 <macrodef name="atotechocc_before_dist"/>
+
+	 before/after ant macro "dist_copy" - internal target; only for use when platform is available in source code
+		 <macrodef name="atotechocc_before_dist_copy"/>
+		 <macrodef name="atotechocc_after_dist_copy"/>
+
+--><project name="atotechocc_buildcallbacks">
+    	
+    <!--
+	    Called whenever 'ant ear' is used. this callback can be used to modify the content of the ear file
+
+	     ${ear.path}: 			path to ear
+	 -->
+    	
+    <macrodef name="atotechocc_after_build">
+        		
+        <sequential>
+            <echo message="atotechocc_after_build"/>
+
+            <if>
+                <not>
+                    <available file="${ext.commercewebservices.path}/web/webroot/WEB-INF/config/v2/security-v2-spring.xml" />
+                </not>
+                <then>
+                    <fail message="security-v2-spring.xml in commercewebservices extention is not found" />
+                </then>
+            </if>
+
+            <echo message="Patching security-v2-spring.xml file in commercewebservices extension" />
+            <copy file="${ext.atotechocc.path}/resources/patch/commercewebservices/web/webroot/WEB-INF/config/v2/security-v2-spring.xml"
+                  tofile="${ext.commercewebservices.path}/web/webroot/WEB-INF/config/v2/security-v2-spring.xml"
+                  failonerror="true" overwrite="true" />
+        </sequential>
+    </macrodef>
+    
+</project>

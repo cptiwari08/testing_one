@@ -11,7 +11,7 @@ pipeline {
         stage('Clone source') {
             steps {
                 load "cicd/envars.conf"
-                git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: "${DEV_BRANCH}", credentialsId: 'atotech-gitlab'
+                git url: 'https://gitlab.com/atotech-ecom/atotech-e-commerce.git', branch: "${DEV_BRANCH}", credentialsId: '89270b60-850f-4a1e-a1b1-0d30266c3a3a'
             }
         }
 

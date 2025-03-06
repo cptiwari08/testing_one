@@ -1,0 +1,6 @@
+$lang=de
+
+$storeUid=atotechChina
+
+UPDATE BaseStore;uid[unique=true];name[lang=$lang]
+;$storeUid;"Atotech China-Verkaufsstelle";

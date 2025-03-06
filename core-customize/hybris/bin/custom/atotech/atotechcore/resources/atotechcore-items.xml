@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="items.xsd">
+    
+    <enumtypes>
+        <enumtype code="AtotechUnit" dynamic="true"/>
+        <enumtype code="AtotechVariation" dynamic="true"/>
+        <enumtype code="DistributionSalesStatus" dynamic="true"/>
+        <enumtype code="SapProductStatus" dynamic="true"/>
+    </enumtypes>
+    
+    <relations>
+        <relation code="AtotechVariantProduct2Distributions" localized="false">
+            <sourceElement type="AtotechVariantProduct" cardinality="one" qualifier="product">
+                <modifiers unique="true"/>
+            </sourceElement>
+            <targetElement type="ProductDistribution" cardinality="many" qualifier="distributions"/>
+        </relation>
+
+        <relation code="SalesOrgStoreRelation" localized="false">
+            <deployment table="SalesOrg2StoreRel" typecode="11004"/>
+            <sourceElement type="SalesOrg" qualifier="salesOrgs" cardinality="many"/>
+            <targetElement type="BaseStore" qualifier="stores" cardinality="many"/>
+        </relation>
+    </relations>
+    
+    <itemtypes>
+        <itemtype code="AtotechVariantProduct" extends="VariantProduct">
+            <attributes>
+                <attribute qualifier="packageSize" type="java.lang.String">
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="variantUnit" type="AtotechUnit">
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="variation" type="AtotechVariation">
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="sapStatus" type="SapProductStatus">
+                    <persistence type="property"/>
+                </attribute>
+            </attributes>
+        </itemtype>
+        
+        <itemtype code="ProductDistribution">
+            <deployment table="ProductDistribution" typecode="11002"/>
+            <attributes>
+                <attribute qualifier="salesOrg" type="SalesOrg">
+                    <modifiers unique="true"/>
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="salesStatus" type="DistributionSalesStatus">
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="distributionChanel" type="java.lang.String">
+                    <modifiers unique="true"/>
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="division" type="java.lang.String">
+                    <persistence type="property"/>
+                </attribute>
+            </attributes>
+            <indexes>
+                <index name="ProductDistributionUnqIdx" unique="true">
+                    <key attribute="distributionChanel"/>
+                    <key attribute="salesOrg"/>
+                    <key attribute="product"/>
+                </index>
+            </indexes>
+        </itemtype>
+
+        <itemtype code="SalesOrg">
+            <deployment table="SalesOrg" typecode="11001"/>
+            <attributes>
+                <attribute qualifier="code" type="java.lang.String">
+                    <modifiers unique="true"/>
+                    <persistence type="property"/>
+                </attribute>
+                <attribute qualifier="name" type="localized:java.lang.String">
+                    <persistence type="property"/>
+                </attribute>
+            </attributes>
+        </itemtype>
+
+        <itemtype code="AtotechProduct" extends="Product"/>
+    </itemtypes>
+</items>

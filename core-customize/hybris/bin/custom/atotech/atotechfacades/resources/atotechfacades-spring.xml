@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+		
+	<context:annotation-config/>
+	
+	<bean id="carouselProductConverter" parent="defaultProductConverter">
+		<property name="populators">
+			<list merge="true">
+				<ref bean="productPricePopulator"/>
+			</list>
+		</property>
+	</bean>
+
+	<!-- accelerator Image Format Mappings -->
+	<alias name="acceleratorImageFormatMapping" alias="imageFormatMapping"/>
+	<bean id="acceleratorImageFormatMapping" parent="defaultImageFormatMapping">
+		<property name="mapping">
+			<map>
+				<entry key="superZoom" value="1200Wx1200H"/>
+				<entry key="zoom" value="515Wx515H"/>
+				<entry key="store" value="365Wx246H"/>
+				<entry key="product" value="300Wx300H"/>
+				<entry key="thumbnail" value="96Wx96H"/>
+				<entry key="cartIcon" value="65Wx65H"/>
+				<entry key="styleSwatch" value="30Wx30H"/>
+			</map>
+		</property>
+	</bean>
+
+	<alias name="acceleratorProductPrimaryImagePopulator" alias="productPrimaryImagePopulator" />
+	<bean id="acceleratorProductPrimaryImagePopulator" parent="defaultProductPrimaryImagePopulator">
+		<property name="imageFormats">
+			<list>
+				<value>zoom</value>
+				<value>product</value>
+				<value>thumbnail</value>
+				<value>cartIcon</value>
+			</list>
+		</property>
+	</bean>
+
+	<alias name="acceleratorProductGalleryImagesPopulator" alias="productGalleryImagesPopulator" />
+	<bean id="acceleratorProductGalleryImagesPopulator" parent="defaultProductGalleryImagesPopulator">
+		<property name="imageFormats">
+			<list>
+				<value>superZoom</value>
+				<value>zoom</value>
+				<value>product</value>
+				<value>thumbnail</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="customerEmailContext" class="com.atotech.facades.process.email.context.CustomerEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="customerConverter" ref="customerConverter"/>
+	</bean>
+
+	<bean id="forgottenPasswordEmailContext" class="com.atotech.facades.process.email.context.ForgottenPasswordEmailContext" parent="customerEmailContext" scope="prototype" >
+		<property name="customerConverter" ref="customerConverter"/>
+	</bean>
+
+	<bean id="orderNotificationEmailContext" class="com.atotech.facades.process.email.context.OrderNotificationEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="orderConverter" ref="orderConverter"/>
+	</bean>
+
+	<bean id="quoteNotificationEmailContext" class="com.atotech.facades.process.email.context.QuoteNotificationEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="quoteService" ref="quoteService"/>
+		<property name="quoteConverter" ref="quoteConverter"/>
+	</bean>
+	
+	<bean id="deliverySentEmailContext" class="com.atotech.facades.process.email.context.DeliverySentEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="consignmentConverter" ref="consignmentConverter"/>
+	</bean>
+	
+	<bean id="readyForPickupEmailContext" class="com.atotech.facades.process.email.context.ReadyForPickupEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="consignmentConverter" ref="consignmentConverter"/>
+	</bean>
+	
+	<bean id="orderCancelledEmailContext" class="com.atotech.facades.process.email.context.OrderCancelledEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="orderConverter" ref="orderConverter"/>
+	</bean>
+	
+	<bean id="orderRefundEmailContext" class="com.atotech.facades.process.email.context.OrderRefundEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="orderConverter" ref="orderConverter"/>
+	</bean>
+	<bean id="consignmentCollectionReminderEmailContext" class="com.atotech.facades.process.email.context.ConsignmentCollectionReminderEmailContext" parent="abstractEmailContext" scope="prototype">
+        <property name="consignmentConverter" ref="consignmentConverter"/>
+        <property name="formatFactory" ref="formatFactory"/>
+        <property name="customerServiceUncollectedConsignmentStrategy" ref="customerServiceUncollectedConsignmentStrategy" />
+        <property name="orderConverter" ref="orderConverter"/>
+    </bean>
+
+	<bean id="orderPartiallyModifiedEmailContext" class="com.atotech.facades.process.email.context.OrderPartiallyModifiedEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="orderConverter" ref="orderConverter"/>
+		<property name="orderEntryConverter" ref="orderEntryConverter"/>
+		<property name="priceDataFactory" ref="priceDataFactory"/>		
+	</bean>
+
+	<bean id="orderPartiallyCanceledEmailContext" class="com.atotech.facades.process.email.context.OrderPartiallyCanceledEmailContext" parent="orderPartiallyModifiedEmailContext" scope="prototype" >
+	</bean>
+
+	<bean id="orderPartiallyRefundedEmailContext" class="com.atotech.facades.process.email.context.OrderPartiallyRefundedEmailContext" parent="orderPartiallyModifiedEmailContext" scope="prototype" >
+	</bean>
+
+	<bean id="notPickedUpConsignmentCanceledEmailContext" class="com.atotech.facades.process.email.context.NotPickedUpConsignmentCanceledEmailContext" parent="abstractEmailContext" scope="prototype" >
+		<property name="consignmentConverter" ref="consignmentConverter"/>
+		<property name="priceDataFactory" ref="priceDataFactory"/>
+	</bean>
+
+	<alias name="yacceleratorSearchPagePointOfServiceDistancePopulator" alias="searchPagePointOfServiceDistancePopulator" />
+	<bean id="yacceleratorSearchPagePointOfServiceDistancePopulator" class="com.atotech.facades.storefinder.populators.SearchPagePointOfServiceDistancePopulator" >
+		<property name="pointOfServiceDistanceConverter" ref="pointOfServiceDistanceConverter"/>
+	</bean>
+
+</beans>

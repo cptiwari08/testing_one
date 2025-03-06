@@ -1,0 +1,1 @@
+call ..\hybris\bin\platform\setantenv.bat

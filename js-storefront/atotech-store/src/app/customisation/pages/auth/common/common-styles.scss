@@ -1,0 +1,146 @@
+@import "./../../../../../styles/variables";
+@import "./../../../../../styles/mixins";
+
+:host {
+  min-width: 100%;
+}
+
+.lp {
+  &-wrapper {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  &-aside {
+    width: 451px;
+
+    @include for-tablet {
+      display: none;
+    }
+  }
+
+  &-form {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .logo {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      display: none;
+
+      @include for-tablet {
+        display: block;
+      }
+    }
+
+    .form-wrapper {
+      width: 310px;
+      margin: 30px;
+      color: $tech-graphite-grey;
+
+      @include for-phone-in-any-mode {
+        padding: 156px 0;
+      }
+
+      .form {
+        &-title {
+          margin-bottom: 25px;
+
+          &.title-reset {
+            margin-bottom: 28px;
+          }
+        }
+
+        &-text {
+          padding: 20px 33px;
+          font-size: 14px;
+          line-height: 22px;
+          color: $tech-graphite-grey;
+          background-color: rgba(89, 146, 214, 0.1);
+        }
+
+        &-control-wrapper {
+          margin-bottom: 19px;
+        }
+
+        &-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-top: 22px;
+
+          @include for-tablet {
+            flex-direction: column;
+          }
+        }
+
+        .btn-primary,
+        .btn-secondary {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 140px;
+          padding: 11px 20px;
+          font-size: 17px;
+          font-weight: 700;
+          border-radius: 0;
+
+          @include for-tablet {
+            width: 100%;
+            margin-bottom: 30px;
+          }
+
+          &.btn-arrow-right {
+            padding: 11px 15px 11px 25px;
+          }
+
+          &:hover {
+            filter: none;
+          }
+
+          &:focus {
+            background-color: $tech-red;
+            color: #fff;
+          }
+
+          .icon-arrow-right:before {
+            @include fontello-icon("\e803", 24px);
+          }
+        }
+
+        .btn-link {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 14px;
+          line-height: 22px;
+          text-decoration: none;
+          color: $tech-light-blue;
+
+          &.link-outside {
+            margin-top: 30px;
+          }
+
+          .icon-arrow-left {
+            position: relative;
+            margin-right: 13px;
+
+            &:before {
+              @include fontello-icon("\e801", 24px);
+
+              @include for-tablet {
+                position: absolute;
+                left: -20px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

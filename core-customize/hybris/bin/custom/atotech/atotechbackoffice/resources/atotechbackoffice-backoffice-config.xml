@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+ Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved.
+-->
+<config xmlns="http://www.hybris.com/cockpit/config"
+	xmlns:na="http://www.hybris.com/cockpitng/config/notifications">
+
+	<context merge-by="module" component="editorareaactions" type="Consignment">
+		<y:actions xmlns:y="http://www.hybris.com/cockpit/config/hybris">
+			<y:group qualifier="common">
+				<y:label>actiongroup.common</y:label>				
+				<y:action action-id="com.atotech.backoffice.actions.confirmpickupaction" property="currentObject"/>				
+			</y:group>
+		</y:actions>
+    </context>
+
+	<!-- Notification Area-->
+	<context component="notification-area">
+	    <na:notification-area>	        
+	        <na:notifications eventType="atotechbackoffice.confirmpickup.event" level="SUCCESS">
+	            <na:message>hmc.action.confirmpickup.success</na:message>
+	        </na:notifications>
+	   </na:notification-area>
+	</context>
+
+	<context component="editor-area" type="AtotechVariantProduct" merge-by="type">
+		<editorArea:editorArea xmlns:editorArea="http://www.hybris.com/cockpitng/component/editorArea">
+			<editorArea:tab name="hmc.tab.properties">
+				<editorArea:section name="hmc.section.atotechattributes">
+					<editorArea:attribute qualifier="sapStatus"/>
+					<editorArea:attribute qualifier="distributions"/>
+				</editorArea:section>
+			</editorArea:tab>
+			<editorArea:tab name="hmc.tab.product.properties">
+				<editorArea:section name="hmc.section.variantattributes" merge-mode="replace">
+					<editorArea:attribute qualifier="packageSize"/>
+					<editorArea:attribute qualifier="variantUnit"/>
+					<editorArea:attribute qualifier="variation"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context component="editor-area" type="ProductDistribution" merge-by="type">
+		<editorArea:editorArea xmlns:editorArea="http://www.hybris.com/cockpitng/component/editorArea">
+			<editorArea:tab name="hmc.tab.atotech">
+				<editorArea:section name="hmc.section.atotechattributes">
+					<editorArea:attribute qualifier="salesOrg"/>
+					<editorArea:attribute qualifier="salesStatus"/>
+					<editorArea:attribute qualifier="distributionChanel"/>
+					<editorArea:attribute qualifier="division"/>
+					<editorArea:attribute qualifier="product"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context component="editor-area" type="SalesOrg" merge-by="type">
+		<editorArea:editorArea xmlns:editorArea="http://www.hybris.com/cockpitng/component/editorArea">
+			<editorArea:tab name="hmc.tab.atotech">
+				<editorArea:section name="hmc.section.atotechattributes">
+					<editorArea:attribute qualifier="code"/>
+					<editorArea:attribute qualifier="name"/>
+					<editorArea:attribute qualifier="stores"/>
+				</editorArea:section>
+			</editorArea:tab>
+		</editorArea:editorArea>
+	</context>
+
+	<context type="ProductDistribution" component="base" merge-by="type" parent="GenericItem">
+		<y:base xmlns:y="http://www.hybris.com/cockpit/config/hybris">
+			<y:labels>
+				<y:label>distributionChanel + ' - ' + division + ' - ' + salesStatus</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+	<context type="SalesOrg" component="base" merge-by="type" parent="GenericItem">
+		<y:base xmlns:y="http://www.hybris.com/cockpit/config/hybris">
+			<y:labels>
+				<y:label>( name ?: '' ) + ' [' + code + '] '</y:label>
+			</y:labels>
+		</y:base>
+	</context>
+
+</config>

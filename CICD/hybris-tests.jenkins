@@ -33,7 +33,7 @@ pipeline {
         stage('Clone source') {
             steps {
                 load "cicd/envars.conf"
-                git url: 'https://gitlab.com/atotech-vp/sap/atotech-e-commerce.git', branch: "${params.Branch}", credentialsId: 'atotech-gitlab'
+                git url: 'https://gitlab.com/atotech-ecom/atotech-e-commerce.git', branch: "${params.Branch}", credentialsId: '89270b60-850f-4a1e-a1b1-0d30266c3a3a'
                 sh "mkdir ${WORKSPACE}/${REPORTS_DIR}"
             }
         }
@@ -244,7 +244,7 @@ cat << EOT > ${XML_FILE}
             script {
                 if (("${params.Branch}" == "${DEV_BRANCH}") || ("${params.Branch}".contains("${RELEASE_BRANCH}"))) {
                     if ((params.'Run unit-tests'==true) && (params.'Run api-tests'==true) && (params.'Run cucumber-tests'==true) && (skip_job==false)) {
-                        withCredentials([usernamePassword(credentialsId: 'atotech-gitlab-2', usernameVariable: 'username', passwordVariable: 'password')]) {
+                        withCredentials([usernamePassword(credentialsId: 'sivananda.reddy-gongati', usernameVariable: 'username', passwordVariable: 'password')]) {
                             sh """
                                 git tag -f ${params.Branch}_${TAG_NAME} ${last_commit.split(' ')[0]}
                                 git config --local credential.helper "!f() { echo username=\\$username; echo password=\\$password; }; f"

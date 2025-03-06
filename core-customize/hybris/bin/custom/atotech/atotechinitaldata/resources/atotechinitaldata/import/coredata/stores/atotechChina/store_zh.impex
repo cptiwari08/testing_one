@@ -1,0 +1,6 @@
+$lang=zh
+
+$storeUid=atotechChina
+
+UPDATE BaseStore;uid[unique=true];name[lang=$lang]
+;$storeUid;"电动工具店铺";

@@ -1,0 +1,307 @@
+@import "variables";
+@import "mixins";
+
+:root {
+  --cx-color-primary: #dd4a4a;
+  --cx-page-width-max: 1170px;
+}
+
+body {
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+}
+
+h4 {
+  font-weight: 700;
+  font-size: 21px;
+}
+
+.is-header-expanded {
+  @include with-hamburger {
+    height: 100vh;
+    overflow: hidden;
+  }
+}
+
+cx-storefront.stop-navigating:after,
+cx-storefront.start-navigating:after {
+  background-color: #fff;
+}
+
+// Forms
+cx-form-errors {
+  color: $tech-red;
+
+  p::before {
+    background-color: $tech-red;
+  }
+}
+
+.form {
+  .form {
+    &-control {
+      margin-bottom: 3px;
+      padding: 11px 12px 11px 0;
+      border: none;
+      border-radius: 0;
+      border-bottom: 1px solid $tech-light-grey;
+      font-size: 17px;
+      line-height: 1.45;
+      color: $tech-graphite-grey;
+
+      &::placeholder {
+        font-weight: normal;
+        font-size: 17px;
+        line-height: 17px;
+        color: rgba(108, 108, 120, 0.5);
+      }
+
+      &.ng-invalid.ng-touched {
+        border-bottom-color: $tech-red;
+      }
+
+      &:focus {
+        background-color: inherit;
+      }
+
+      &-wrapper {
+        .label-content {
+          position: relative;
+          z-index: 2;
+          margin-bottom: -10px;
+          font-weight: 700;
+          font-size: 10px;
+          line-height: 17px;
+          color: $tech-dark-grey;
+        }
+      }
+    }
+  }
+}
+
+// Login page
+.LoginPageTemplate {
+  .header,
+  &:before,
+  &:after {
+    display: none;
+  }
+
+  main {
+    min-height: 100vh;
+  }
+
+  .LeftContentSlot {
+    --cx-page-width-max: 100%;
+    padding: 0;
+  }
+
+  .LoginPageTemplate {
+    padding: 0;
+  }
+}
+
+// Header
+header {
+  --cx-color-inverse: #5992d6;
+  --cx-color-light: #5992d6;
+  --cx-color-dark: #fff;
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.1);
+
+
+  @include without-hamburger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+  }
+
+  &.is-expanded {
+    &:after {
+      display: none;
+    }
+
+    @include with-hamburger {
+      .navigation {
+        background-color: #fff;
+      }
+    }
+  }
+
+  .cx-hamburger {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    @include without-hamburger {
+      display: none;
+    }
+  }
+
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    background-color: #fff;
+
+    @include without-hamburger {
+      position: static;
+    }
+
+    .SiteLogo {
+      width: 181px;
+
+      @include for-tablet {
+        width: 136px;
+      }
+
+      cx-media {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    .NavigationBar {
+      &:before {
+        content: "";
+        display: block;
+        width: 100%;
+        border-bottom: 1px solid;
+        border-color: rgba(164, 164, 175, 0.5);
+        opacity: 0.39;
+      }
+
+      a,
+      h5 {
+        font-weight: 700;
+        line-height: 20px;
+        text-transform: none;
+      }
+
+      h5 {
+        padding-top: 17px;
+        font-size: 17px;
+      }
+    }
+  }
+
+  .navigation {
+    @include with-hamburger {
+      min-height: calc(100vh - #{$header-height-laptop});
+      margin-top: $header-height-laptop;
+    }
+    @include only-for-small-tablet {
+      min-height: calc(100vh - #{$header-height-mobile});
+      margin-top: $header-height-mobile;
+    }
+  }
+
+  .SiteContext {
+    height: 51px;
+
+    &:after {
+      top: 51px;
+      border-color: rgba(164, 164, 175, 0.5);
+      opacity: 0.39;
+    }
+  }
+
+  .SearchBox {
+    --cx-color-secondary: rgba(164, 164, 175, 0.2);
+    color: $tech-dark-grey;
+  }
+
+  .MiniCart {
+    color: #fff;
+  }
+
+  .hamburger {
+    &.is-active {
+      .hamburger-inner,
+      .hamburger-inner::before,
+      .hamburger-inner::after {
+        background-color: $tech-light-blue;
+      }
+    }
+  }
+
+  .hamburger-inner {
+    &,
+    &::before,
+    &::after {
+      width: 24px;
+      height: 1.875px;
+      background-color: $tech-light-blue;
+    }
+  }
+}
+
+.LandingPage2Template {
+  main {
+    margin-top: $header-height-desktop;
+    @include with-hamburger {
+      margin-top: $header-height-laptop;
+    }
+    @include only-for-small-tablet {
+      margin-top: $header-height-mobile;
+    }
+  }
+}
+
+cx-breadcrumb {
+  margin-top: $header-height-desktop;
+  background-color: #fff;
+  @include with-hamburger {
+    margin-top: $header-height-laptop;
+  }
+  @include only-for-small-tablet {
+    margin-top: $header-height-mobile;
+  }
+}
+
+// Footer
+.footer {
+  cx-footer-navigation {
+    min-height: 478px;
+    background-color: $tech-light-blue;
+    background-image: url(../assets/pictures/footer_background.svg);
+    background-repeat: no-repeat;
+    background-position: center center;
+
+    cx-navigation-ui {
+      h5 {
+        font-size: 21px;
+        font-style: normal;
+        line-height: 32px;
+        text-align: left;
+        text-transform: none;
+      }
+
+      .wrapper {
+        .childs {
+          a {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 0;
+            font-size: 17px;
+            font-style: normal;
+            line-height: 32px;
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+
+  .cx-notice {
+    background-color: $tech-dark-blue;
+    font-size: 12px;
+    line-height: 32px;
+    color: #fff;
+  }
+}

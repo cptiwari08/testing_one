@@ -1,0 +1,33 @@
+{
+  "code": "${code}",
+  "name": "${name}",
+  "catalogVersion": {
+    "catalog": {
+      "id": "${catalogId}"
+    },
+    "version": "${catalogVersion}"
+  },
+  "unit": {
+    "code": "${unitCode}"
+  },
+  "supercategories": [
+    {
+      "catalogVersion": {
+        "catalog": {
+          "id": "${catalogId}"
+        },
+        "version": "${catalogVersion}"
+      },
+      "code": "${firstCategory}"
+    },
+    {
+      "catalogVersion": {
+        "catalog": {
+          "id": "${catalogId}"
+        },
+        "version": "${catalogVersion}"
+      },
+      "code": "${secondCategory}"
+    }
+  ]
+}

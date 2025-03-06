@@ -1,0 +1,28 @@
+{
+  "techTranslation": {
+    "becomeCustomer": {
+      "title": "Welcome to Atotech Shop",
+      "text": "Get a faster self-service order experience without unnecesary phone calls and emails."
+    },
+    "loginForm": {
+      "loginTitle": "Login to Atotech Shop",
+      "loginText": "Are you an existing Atotech customer? Sign in using your email and credentials.",
+      "atotechWebsite": "Atotech.com website"
+    },
+    "forgotPassword": {
+      "resetTitle": "Reset Password",
+      "reset": "Reset",
+      "cancel": "Login with Atotech"
+    },
+    "forgotPasswordSuccess": {
+      "title": "Your Password has been Successfully Reset",
+      "text": "Please check your email with reset instructions to setup a new password.",
+      "button": "Back to Login"
+    },
+    "resetPassword": {
+      "title": "Setup a New Password",
+      "text": "Password must be six characters minimum, with one uppercase letter, one number, one symbol",
+      "button": "Setup"
+    }
+  }
+}

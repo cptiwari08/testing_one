@@ -1,0 +1,33 @@
+:host {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url(../../../../../../assets/pictures/login-background.png);
+  color: #fff;
+}
+
+.logo {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+}
+
+.content {
+  padding: 0 41px 24px;
+  text-align: center;
+
+  &-title {
+    margin-bottom: 22px;
+    line-height: 32px;
+  }
+
+  &-text {
+    margin-bottom: 26px;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 32px;
+  }
+}
+
+

@@ -1,0 +1,6 @@
+# Language
+$lang=de
+
+# Create CMS Site
+UPDATE CMSSite;uid[unique=true];name[lang=$lang];locale[lang=$lang]
+ ;atotechChina;"Atotech China-Website";de_DE

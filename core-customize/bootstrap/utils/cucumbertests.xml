@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<project name="cucumbertests">
+    <property name="host" value="localhost:9001"/>
+    <property name="report.format" value="html" />
+    <property name="tags" value="@Backend" />
+    <property name="report.path" value="${HYBRIS_LOG_DIR}/tests/cucumber" />
+    <property name="features.path" value="${customextensionsfolder}/atotech/atotechbackendfeatures/backendfeatures" />
+
+
+    <target name="runbackendcucumbertests">
+        <cucumbertests target.host="${host}"
+                       features.path="${features.path}"
+                       report.path="${report.path}"
+                       report.format="${report.format}"
+                       tags="${tags}"/>
+    </target>
+
+    <macrodef name="cucumbertests" description="Runs backend cucumber tests against a deployed hybris instance">
+        <attribute name="target.host" />
+        <attribute name="features.path" />
+        <attribute name="report.path" />
+        <attribute name="report.format" />
+        <attribute name="tags"/>
+        <sequential>
+            <mkdir dir="@{report.path}" />
+            <urlencode name="encodedPathForReport" value="${report.path}"/>
+            <urlencode name="encodedPathToFeatures" value="${features.path}" />
+            <var name="cucumber.target"
+                 value="http://@{target.host}/cucumberserver/runbackendcucumbertests?reportFormat=@{report.format}&amp;featuresPath=${encodedPathToFeatures}&amp;reportPath=${encodedPathForReport}&amp;tags=@{tags}" />
+            <get src="${cucumber.target}" dest="@{report.path}/report.txt" />
+            <concat>
+                <path path="@{report.path}/report.txt" />
+            </concat>
+        </sequential>
+    </macrodef>
+
+</project>

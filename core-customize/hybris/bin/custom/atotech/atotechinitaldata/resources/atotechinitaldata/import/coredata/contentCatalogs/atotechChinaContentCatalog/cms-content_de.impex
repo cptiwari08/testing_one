@@ -1,0 +1,56 @@
+$contentCatalog=atotechChinaContentCatalog
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+# Language
+$lang=de
+
+
+# Content Pages
+    
+UPDATE ContentPage;$contentCV[unique=true];uid[unique=true];title[lang=$lang]
+;;account;"Mein Konto"
+;;address-book;"Adressbuch"
+;;cartPage;"Ihr Warenkorb"
+;;checkout-login;"Zur Kasse gehen"
+;;faq;"Häufig gestellte Fragen"
+;;homepage;"Startseite"
+;;login;"Anmelden"
+;;multiStepCheckoutSummaryPage;"Bezahlen"
+;;my-quotes;"Angebote"
+;;notFound;"Nicht gefunden"
+;;order;"Bestellungsdetails"
+;;order-approval-dashboard;"Seite ""Bestellgenehmigungsdashboard"""
+;;order-approval-details;"Seite ""Bestellgenehmigungsdetails"""
+;;orderConfirmationPage;"Bestellbestätigung"
+;;orders;"Bestellverlauf"
+;;payment-details;"Zahlungsdetails"
+;;profile;"Profil"
+;;quickOrderPage;"Schnellbestellung"
+;;quote-detail;"Details zu meinen Angeboten"
+;;quoteEditPage;"Angebotsbearbeitung"
+;;saved-carts;"Gespeicherte Warenkörbe"
+;;savedCartDetailsPage;"Details des gespeicherten Warenkorbs"
+;;search;"Seite ""Suchergebnisliste"""
+;;searchAdvancedEmpty;"Bestellformulare"
+;;searchEmpty;"Keine Ergebnisse"
+;;searchGrid;"Seite ""Suchergebnisraster"""
+;;termsAndConditions;"Allgemeine Geschäftsbedingungen"
+;;update-email;"E-Mail aktualisieren"
+;;update-profile;"Profil aktualisieren"
+;;updatePassword;"Vergessenes Kennwort erneuern"
+
+    
+# Category Pages
+    
+UPDATE CategoryPage;$contentCV[unique=true];uid[unique=true];title[lang=$lang]
+;;category;"Seite ""Standardkategorie"""
+;;productGrid;"Produktraster"
+;;productList;"Produktliste"
+
+    
+# Product Pages
+    
+UPDATE ProductPage;$contentCV[unique=true];uid[unique=true];title[lang=$lang]
+;;productDetails;"Produktdetails"
+
+    

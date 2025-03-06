@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.epam.aurora.cucumberserver"/>
+
+    <alias name="auroraDefaultCliArgumentsCollector" alias="auroraCliArgumentsCollector"/>
+    <bean name="auroraDefaultCliArgumentsCollector" class="com.epam.aurora.cucumberserver.runtime.config.collector.impl.CliArgumentsCollectorImpl"/>
+
+    <alias name="auroraDefaultCucumberRuntimeFactory" alias="auroraCucumberRuntimeFactory"/>
+    <bean name="auroraDefaultCucumberRuntimeFactory" class="com.epam.aurora.cucumberserver.runtime.factory.impl.CucumberRuntimeFactoryImpl">
+        <constructor-arg name="cliArgumentsCollector" ref="auroraCliArgumentsCollector"/>
+    </bean>
+
+    <alias name="auroraDefaultCucumberRuntimeRunner" alias="auroraCucumberRuntimeRunner"/>
+    <bean name="auroraDefaultCucumberRuntimeRunner" class="com.epam.aurora.cucumberserver.runtime.runner.impl.CucumberRuntimeRunnerImpl">
+        <constructor-arg name="cucumberRuntimeFactory" ref="auroraCucumberRuntimeFactory"/>
+        <constructor-arg name="testExecutionResultFactory" ref="auroraTestExecutionResultFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultConcurrentRuntimePoolFactory" alias="auroraConcurrentRuntimePoolFactory"/>
+    <bean name="auroraDefaultConcurrentRuntimePoolFactory"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.context.impl.ConcurrentRuntimePoolFactoryImpl">
+        <constructor-arg name="cucumberRuntimeFactory" ref="auroraCucumberRuntimeFactory"/>
+        <constructor-arg name="shouldUseRealRuntimesPoolPropertyName" value="aurora.cucumberserver.concurrent.should.use.real.runtimes.pool"/>
+        <constructor-arg name="realRuntimePoolCapacityPropertyName" value="aurora.cucumberserver.concurrent.number.of.threads"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+    </bean>
+
+    <alias name="auroraDefaultTenantAwareThreadFactory" alias="auroraTenantAwareThreadFactory"/>
+    <bean id="auroraDefaultTenantAwareThreadFactory" class="de.hybris.platform.core.TenantAwareThreadFactory">
+        <constructor-arg name="tenant" ref="tenantFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultAbstractCucumberExecutorServiceFactory" alias="auroraAbstractCucumberExecutorServiceFactory"/>
+    <bean name="auroraDefaultAbstractCucumberExecutorServiceFactory" abstract="true"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.executor.factory.CucumberExecutorServiceFactoryImpl">
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="threadFactory" ref="auroraTenantAwareThreadFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultCucumberExecutorServiceFactory" alias="auroraCucumberExecutorServiceFactory"/>
+    <bean name="auroraDefaultCucumberExecutorServiceFactory" parent="auroraAbstractCucumberExecutorServiceFactory">
+        <constructor-arg name="numberOfThreadsPropertyName" value="aurora.cucumberserver.concurrent.number.of.threads"/>
+    </bean>
+
+    <alias name="auroraDefaultConcurrentCucumberContextFactory" alias="auroraConcurrentCucumberContextFactory"/>
+    <bean name="auroraDefaultConcurrentCucumberContextFactory"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.context.impl.ConcurrentCucumberContextFactoryImpl">
+        <constructor-arg name="cliArgumentsCollector" ref="auroraCliArgumentsCollector"/>
+        <constructor-arg name="concurrentRuntimePoolFactory" ref="auroraConcurrentRuntimePoolFactory"/>
+        <constructor-arg name="cucumberRuntimeFactory" ref="auroraCucumberRuntimeFactory"/>
+        <constructor-arg name="cucumberExecutorServiceFactory" ref="auroraCucumberExecutorServiceFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultProxyInteractionRecorderFactory" alias="auroraProxyInteractionRecorderFactory"/>
+    <bean name="auroraDefaultProxyInteractionRecorderFactory"
+          class="com.epam.aurora.cucumberserver.util.interaction.recorder.impl.MethodCallRecordingContextFactoryImpl"/>
+
+    <alias name="auroraDefaultTestExecutionResultFactory" alias="auroraTestExecutionResultFactory"/>
+    <bean name="auroraDefaultTestExecutionResultFactory" class="com.epam.aurora.cucumberserver.runtime.runner.result.impl.TestExecutionResultFactoryImpl"/>
+
+    <alias name="auroraDefaultConcurrentCucumberScenarioRunner" alias="auroraConcurrentCucumberScenarioRunner"/>
+    <bean name="auroraDefaultConcurrentCucumberScenarioRunner"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.scenario.impl.ConcurrentCucumberScenarioRunnerImpl">
+        <constructor-arg name="methodCallRecordingContextFactory" ref="auroraProxyInteractionRecorderFactory"/>
+        <constructor-arg name="testExecutionResultFactory" ref="auroraTestExecutionResultFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultConcurrentCucumberResultCollector" alias="auroraConcurrentCucumberResultCollector"/>
+    <bean name="auroraDefaultConcurrentCucumberResultCollector"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.result.impl.CucumberConcurrentResultCollectorImpl"/>
+
+    <alias name="auroraDefaultConcurrentCucumberFeatureRunner" alias="auroraConcurrentCucumberFeatureRunner"/>
+    <bean name="auroraDefaultConcurrentCucumberFeatureRunner"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.feature.impl.ConcurrentCucumberFeatureRunnerImpl">
+        <constructor-arg name="concurrentCucumberScenarioRunner" ref="auroraConcurrentCucumberScenarioRunner"/>
+        <constructor-arg name="cucumberConcurrentResultCollector" ref="auroraConcurrentCucumberResultCollector"/>
+    </bean>
+    
+    <alias name="auroraDefaultConcurrentCucumberRuntimeRunner" alias="auroraConcurrentCucumberRuntimeRunner"/>
+    <bean name="auroraDefaultConcurrentCucumberRuntimeRunner"
+          class="com.epam.aurora.cucumberserver.runtime.runner.impl.concurrent.ConcurrentCucumberRuntimeRunner">
+        <constructor-arg name="concurrentCucumberContextFactory" ref="auroraConcurrentCucumberContextFactory"/>
+        <constructor-arg name="concurrentCucumberFeatureRunner" ref="auroraConcurrentCucumberFeatureRunner"/>
+        <constructor-arg name="cucumberConcurrentResultCollector" ref="auroraConcurrentCucumberResultCollector"/>
+    </bean>
+
+    <alias name="auroraDefaultGlueCodeLocationsFactory" alias="auroraGlueCodeLocationsFactory"/>
+    <bean name="auroraDefaultGlueCodeLocationsFactory" class="com.epam.aurora.cucumberserver.runtime.config.glue.impl.SimpleOnePlaceGlueCodeLocationsFactory">
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="gluePropertyName" value="aurora.cucumberserver.path.to.stepdefs"/>
+    </bean>
+
+    <alias name="auroraDefaultAdhocCucumberRuntimeOptionsFactory" alias="auroraAdhocCucumberRuntimeOptionsFactory"/>
+    <bean name="auroraDefaultAdhocCucumberRuntimeOptionsFactory"
+          class="com.epam.aurora.cucumberserver.runtime.options.adhoc.impl.AdhocCucumberRuntimeOptionsFactoryImpl">
+        <constructor-arg name="glueCodeLocationsFactory" ref="auroraGlueCodeLocationsFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultFileSystemCucumberRuntimeOptionsFactory" alias="auroraFileSystemCucumberRuntimeOptionsFactory"/>
+    <bean name="auroraDefaultFileSystemCucumberRuntimeOptionsFactory"
+          class="com.epam.aurora.cucumberserver.runtime.options.filesystem.impl.FileSystemCucumberRuntimeOptionsFactoryImpl">
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="glueCodeLocationsFactory" ref="auroraGlueCodeLocationsFactory"/>
+    </bean>
+
+    <alias name="auroraDefaultCucumberRuntimeRunnerFactory" alias="auroraCucumberRuntimeRunnerFactory"/>
+    <bean name="auroraDefaultCucumberRuntimeRunnerFactory" class="com.epam.aurora.cucumberserver.runtime.runner.impl.CucumberRuntimeRunnerFactoryImpl">
+        <constructor-arg name="shouldUseConcurrentRunnerPropertyName" value="aurora.cucumberserver.concurrent.should.run.concurrently"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="cucumberRuntimeRunner" ref="auroraCucumberRuntimeRunner"/>
+        <constructor-arg name="cucumberConcurrentRuntimeRunner" ref="auroraConcurrentCucumberRuntimeRunner"/>
+    </bean>
+    
+    <alias name="auroraDefaultCucumberRuntimeFacade" alias="auroraCucumberRuntimeFacade"/>
+    <bean name="auroraDefaultCucumberRuntimeFacade" class="com.epam.aurora.cucumberserver.runtime.facade.impl.CucumberRuntimeFacadeImpl">
+        <constructor-arg name="cucumberRuntimeRunnerFactory" ref="auroraCucumberRuntimeRunnerFactory"/>
+        <constructor-arg name="adhocCucumberRuntimeOptionsFactory" ref="auroraAdhocCucumberRuntimeOptionsFactory"/>
+        <constructor-arg name="fileSystemCucumberRuntimeOptionsFactory" ref="auroraFileSystemCucumberRuntimeOptionsFactory"/>
+    </bean>
+</beans>

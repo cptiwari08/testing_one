@@ -1,0 +1,125 @@
+<hybrisconfig xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='../bin/platform/resources/schemas/extensions.xsd'>
+  <extensions>
+    <path dir='${HYBRIS_BIN_DIR}' autoload='false' />
+
+        <extension name="b2bacceleratoraddon"/>
+
+        <!-- Accelerator -->
+        <extension name="basecommerce"/>
+        <extension name="basecommercebackoffice"/>
+
+        <extension name="commercefacades"/>
+        <extension name="commerceservices"/>
+        <extension name="commerceservicesbackoffice"/>
+        <extension name="commercewebservices"/>
+        <extension name="commercewebservicescommons"/>
+
+        <extension name="acceleratorbackoffice"/>
+        <extension name="acceleratorcms"/>
+        <extension name="acceleratorfacades"/>
+        <extension name="acceleratorocc"/>
+        <extension name="acceleratorservices"/>
+
+        <!-- B2B Extensions -->
+        <extension name="b2bapprovalprocess"/>
+        <extension name="b2bapprovalprocessfacades"/>
+        <extension name="b2bcommerce"/>
+        <extension name="b2bcommercebackoffice"/>
+        <extension name="b2bcommercefacades"/>
+
+        <extension name="b2bocc"/>
+        <extension name="customercouponocc"/>
+
+        <!-- Platform modules -->
+        <extension name="npmancillary"/>
+        <extension name="embeddedserver"/>
+        <extension name="groovynature"/>
+        <extension name="mediaconversion"/>
+        <extension name="patches"/>
+        <extension name="deltadetection"/>
+        <extension name="springintegrationlibs"/>
+        <extension name="tomcatembeddedserver"/>
+
+        <!-- Solr -->
+        <extension name="solrfacetsearch"/>
+        <extension name="solrfacetsearchbackoffice"/>
+        <extension name="solrserver"/>
+
+        <!-- search-services-->
+        <extension name="searchbackoffice"/>
+        <extension name="searchprovidercssearchbackoffice"/>
+        <extension name="searchprovidercssearchservices"/>
+        <extension name="searchservices"/>
+
+        <!-- CMS -->
+        <extension name="cms2"/>
+        <extension name="cms2lib"/>
+        <extension name="cmsbackoffice"/>
+        <extension name="cmsfacades"/>
+        <extension name="cmsocc"/>
+        <extension name="cmswebservices"/>
+        <extension name="previewwebservices"/>
+
+        <!-- SmartEdit -->
+        <extension name="cmssmartedit"/>
+        <extension name="cmssmarteditwebservices"/>
+        <extension name="smartedit"/>
+        <extension name="smarteditwebservices"/>
+
+        <!-- adaptivesearch -->
+        <extension name="adaptivesearch"/>
+        <extension name="adaptivesearchbackoffice"/>
+        <extension name="adaptivesearchfacades"/>
+        <extension name="adaptivesearchsolr"/>
+        <extension name="adaptivesearchwebservices"/>
+
+        <!-- Backoffice -->
+        <extension name="backoffice"/>
+        <extension name="backofficesolrsearch"/>
+        <extension name="platformbackoffice"/>
+
+        <!-- Backoffice addons -->
+        <extension name="classificationgroupsservices"/>
+        <extension name="mediaconversionbackoffice"/>
+        <extension name="patchesbackoffice"/>
+        <extension name="pcmbackoffice"/>
+        <extension name="customersupportbackoffice" />
+
+
+        <extension name="permissionswebservices" />
+
+          <!-- Integration -->
+          <extension name="odata2webservices"/>
+          <extension name="integrationbackoffice"/>
+          <extension name="sapcoreconfigurationbackoffice"/>
+          <extension name="sapmodelbackoffice"/>
+          <extension name="saporderexchangebackoffice"/>
+
+          <!-- SCPI -->
+          <extension name="sapcpiadapter"/>
+          <extension name="sapcpicustomerexchange"/>
+          <extension name="sapcpiorderexchange"/>
+          <extension name="sapcpiorderexchangeb2b"/>
+          <extension name="sapcpiproductexchange"/>
+          <extension name="sapcpicustomerexchangeb2b"/>
+          <extension name="c4ccpiquote"/>
+          <extension name="sapinvoiceaddon" />
+
+          <!--assistedservice -->
+          <extension name="assistedservicewebservices" />
+          <extension name="assistedservicestorefront" />
+
+          <extension name="atotechcore" />
+          <extension name="atotechfacades" />
+          <extension name="atotechfulfilmentprocess" />
+          <extension name="atotechbackoffice" />
+          <extension name="atotechbackendfeatures" />
+          <extension name="atotechocc" />
+          <extension name="atotechapitests" />
+          <extension name="atotechinitaldata"/>
+          <extension name="atotechintegrations" />
+
+          <extension name="cucumberserver" />
+
+  </extensions>
+</hybrisconfig>

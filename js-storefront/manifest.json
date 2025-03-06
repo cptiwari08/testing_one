@@ -1,0 +1,16 @@
+{
+    "applications": [
+        {
+            "name": "atotech-store",
+            "path": "atotech-store",
+            "ssr": {
+                "enabled": true,
+                "path": "dist/atotech-store/server/main.js"
+            },
+            "csr": {
+                "webroot": "dist/atotech-store/browser/"
+            }
+        }
+    ],
+    "nodeVersion": "12"
+}
